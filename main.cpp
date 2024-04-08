@@ -18,7 +18,9 @@ int operatorOrder(char);
 void enqueue(Node* &front, Node* &tail, Node*);
 Node* dequeue(Node* &front);
 void printInfix(Node*);
-Node* expressionTree(char*, Node*&);
+void printPostfix(Node*);
+void printPrefix(Node*);
+Node* expressionTree(char*);
 void printTree(Node*, int);
 //main
 int main(){
@@ -50,8 +52,8 @@ int main(){
       else{
       
       shuntingYard(infix, postfix);
-      cout << "translation done" << endl;
-      expressionTree(postfix, root);
+      //cout << "translation done" << endl;
+      root = expressionTree(postfix);
       cout << "printing tree now" << endl;
       printTree(root, 0);
 
@@ -61,14 +63,25 @@ int main(){
     cin.getline(printMethod, 10);
 
     if (strcmp(printMethod, "infix") == 0){
-      cout << root->getData() << endl;
-      cout << root->getLeft()->getData() << endl;
-      cout << root->getRight()->getData() << endl;
+      //cout << root->getData() << endl;
+      //cout << root->getLeft()->getData() << endl;
+      //cout << root->getRight()->getData() << endl;
+      cout << "infix: " << endl;
       printInfix(root);
       cout << " " << endl;
     }
 
-    
+    if (strcmp(printMethod, "postfix") == 0){
+      cout << "postfix: " << endl;
+      printPostfix(root);
+      cout << " " << endl;
+    }
+
+    if (strcmp(printMethod, "prefix") == 0){
+      cout << "prefix: " << endl;
+      printPrefix(root);
+      cout << " " << endl;
+    }
     
   }
 
@@ -84,7 +97,7 @@ void shuntingYard(char* infix, char* postfix){
 
   int i = 0;
   while (infix[i] != '\0'){
-    int thing = infix[i];
+    char thing = infix[i];
     Node* token = new Node(thing);
 
     if (isdigit(thing)){
@@ -92,10 +105,13 @@ void shuntingYard(char* infix, char* postfix){
     }
 
     if (thing == '('){
+      cout << "found open parantheses" << endl;
       push(token, operstackhead);
     }
 
     if (thing == ')'){
+
+      cout << "found closed parantheses" << endl;
       
       /*figure out what to do
 	update: figured it out
@@ -106,11 +122,15 @@ void shuntingYard(char* infix, char* postfix){
       Node* p = peek(operstackhead);
 
       while (p->getData() != '('){
+	cout << p->getData() << endl;
+	cout << "haven't found open yet" << endl;
 	Node* poppy = pop(operstackhead);
 	enqueue (quefront, quetail, poppy);
+	p = peek(operstackhead);
       }
 
       if (p->getData() == '('){
+	cout << "found open parantheses x2" << endl;
 	Node* deletey = pop(operstackhead);
 	delete deletey;
 	delete token;
@@ -218,7 +238,7 @@ Node* dequeue(Node* &front) {
 
 Node* pop (Node* &top){
   if (top == NULL){
-    cout << "stack is empty" << endl;
+    cout << "pop: stack is empty" << endl;
     return NULL;
   }
 
@@ -232,7 +252,7 @@ Node* pop (Node* &top){
 
 Node* peek (Node* &top){
   if (top == NULL){
-    cout << "stack is empty" << endl;
+    cout << "peek: stack is empty" << endl;
     return NULL;
   }
 
@@ -272,7 +292,7 @@ int operatorOrder (char oper){
 
 
 
-Node* expressionTree(char* postfix, Node* &head){
+Node* expressionTree(char* postfix){
   /*
     
 
@@ -284,7 +304,7 @@ Node* expressionTree(char* postfix, Node* &head){
   while (postfix[a] != '\0'){
     char character = postfix[a];
     Node* newN = new Node(character);
-    cout << "we are looking at " << character << endl;
+    //cout << "we are looking at " << character << endl;
     if (isOperator(character) == false){
       newN->setLeft(NULL);
       newN->setRight(NULL);
@@ -292,19 +312,23 @@ Node* expressionTree(char* postfix, Node* &head){
 
     else{ //hit an operator
       Node* right = pop(tree); //right = topmost
-      Node* newRight = new Node (right->getData());
+      //Node* newRight = new Node (right->getData());
       Node* left = pop(tree); //left = second from top
-      Node* newLeft = new Node (left->getData());
-      newN->setLeft(newLeft);
-      newN->setRight(newRight);
-      cout << "left node: " << newN->getLeft()->getData() << endl;
-      cout << "right node: " << newN->getRight()->getData() << endl;
+      //Node* newLeft = new Node (left->getData());
+      newN->setLeft(left);
+      newN->setRight(right);
+      //cout << "left node: " << newN->getLeft()->getData() << endl;
+      //cout << "right node: " << newN->getRight()->getData() << endl;
     }
 
     push(newN, tree);
+    cout << peek(tree)->getData() << endl;
     a++;
   }
 
+  cout << peek(tree)->getData() << endl;
+  cout << peek(tree)->getLeft()->getData() << endl;
+  cout << peek(tree)->getRight()->getData() << endl;
   return peek(tree);
 }
 
@@ -314,29 +338,56 @@ void printInfix(Node* root){
     print that thing
     
   */
+
+  //cout << "root: " << root->getData() << endl;
   
   if (root->getLeft() != NULL){
-    root = root->getLeft();
-    cout << "root is now " << root->getData() << endl;
-    printInfix(root);
+    //root = root->getLeft();
+    //cout << "root is now " << root->getData() << endl;
+    printInfix(root->getLeft());
+    //cout << "root after printInfix: " << root->getData() << endl;
   }
-
+  
     char print = root->getData();
     cout << print;
   
 
   if (root->getRight() != NULL){
-    root = root->getRight();
-    cout << "root is now " << root->getData() << endl;
-    printInfix(root);
-  }   
+    //root = root->getRight();
+    //cout << "root is now " << root->getData() << endl;
+    printInfix(root->getRight());
+  }
+
+  return; 
   
 }
 
 void printPostfix(Node* root){
+
+  if(root->getLeft() != NULL){
+    printPostfix(root->getLeft());
+  }
+
+  if (root->getRight() != NULL){
+    printPostfix(root->getRight());
+  }
+
+  char print = root->getData();
+  cout << print;
 }
 
 void printPrefix(Node* root){
+
+  char print = root->getData();
+  cout << print;
+
+  if (root->getLeft() != NULL){
+    printPrefix(root->getLeft());
+  }
+
+  if (root->getRight() != NULL){
+    printPrefix(root->getRight());
+  }
 }
 
 
